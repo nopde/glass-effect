@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Effect</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", sans-serif;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html {
+            color-scheme: dark;
+        }
+
+        .wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            background-color: rgb(24, 24, 24);
+            background-image: url("tahoe.png");
+            background-size: cover;
+            background-position: center;
+        }
+
+        .lq-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 150px;
+            height: 150px;
+            border-radius: 9999px;
+            border: none;
+            outline: none;
+            white-space: nowrap;
+            background-color: transparent;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            scale: 1;
+            transition: scale 500ms ease-in-out;
+        }
+
+        .lq-btn:hover {
+            scale: 3;
+        }
+
+        .lq-btn .blur,
+        .lq-btn .highlight {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        .lq-btn .blur {
+            z-index: 1;
+            filter: url(#distortion);
+            backdrop-filter: saturate(125%) brightness(125%);
+        }
+
+        .lq-btn .highlight {
+            z-index: 2;
+        }
+
+        .lq-btn .highlight::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            padding: 1px;
+            backdrop-filter: brightness(125%);
+            mask:
+                linear-gradient(#000 0 0) content-box,
+                linear-gradient(#000 0 0);
+            mask-composite: exclude;
+        }
+
+        .lq-btn .highlight::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            padding: 1px;
+            backdrop-filter: saturate(150%) brightness(150%);
+            mask:
+                linear-gradient(135deg,
+                    #000 0%,
+                    #000 1%,
+                    transparent 20%,
+                    transparent 80%,
+                    #000 99%,
+                    #000 100%),
+                linear-gradient(#000 0 0) content-box,
+                linear-gradient(#000 0 0);
+            mask-composite:
+                intersect,
+                exclude;
+        }
+
+        .lq-btn .content {
+            z-index: 3;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <button class="lq-btn" id="my-button">
+            <div class="blur"></div>
+            <div class="highlight"></div>
+            <div class="content">Drag me!</div>
+        </button>
+    </div>
+</body>
+
+<svg width="0" height="0" style="position: absolute">
+    <filter id="distortion" color-interpolation-filters="linearRGB" filterUnits="objectBoundingBox"
+        primitiveUnits="userSpaceOnUse">
+        <feTurbulence type="turbulence" baseFrequency="0.015 0.1" numOctaves="2" seed="2" stitchTiles="stitch" x="0%"
+            y="0%" width="100%" height="100%" result="turbulence" />
+        <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="10" xChannelSelector="R" yChannelSelector="B"
+            x="0%" y="0%" width="100%" height="100%" result="displacementMap" />
+        <feGaussianBlur stdDeviation="3 3" x="0%" y="0%" width="100%" height="100%" in="displacementMap" edgeMode="none"
+            result="blur" />
+    </filter>
+</svg>
+
+<script>
+    const btn = document.getElementById("my-button");
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+
+    btn.addEventListener("mousedown", (e) => {
+        isDragging = true;
+
+        const rect = btn.getBoundingClientRect();
+
+        if (getComputedStyle(btn).position !== "absolute") {
+            btn.style.position = "absolute";
+
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            btn.style.left = `${centerX - btn.offsetWidth / 2}px`;
+            btn.style.top = `${centerY - btn.offsetHeight / 2}px`;
+        }
+
+        startX = e.clientX;
+        startY = e.clientY;
+
+        initialLeft = parseFloat(btn.style.left) || 0;
+        initialTop = parseFloat(btn.style.top) || 0;
+
+        btn.style.cursor = "grabbing";
+
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        btn.style.left = `${initialLeft + dx}px`;
+        btn.style.top = `${initialTop + dy}px`;
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (isDragging) {
+            isDragging = false;
+            btn.style.cursor = "pointer";
+        }
+    });
+</script>
+
+</html>
